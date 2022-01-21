@@ -14,7 +14,7 @@ if (builder.Environment.IsProduction())
 }
 else
 {
-    Console.WriteLine("---> using inMem db");
+    Console.WriteLine("---> Using inMem db");
     builder.Services.AddDbContext<AppDbContext>(opt =>
         opt.UseInMemoryDatabase("InMemory"));
 }
