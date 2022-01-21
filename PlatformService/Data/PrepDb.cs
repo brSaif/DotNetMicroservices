@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,25 +13,43 @@ namespace PlatformService.Data
         {
             using (var serviceScope = app.Services.CreateScope())
             {
-                SeedData(context: serviceScope.ServiceProvider.GetService<AppDbContext>());
+                SeedData(
+                    context: serviceScope.ServiceProvider.GetService<AppDbContext>(), 
+                    app.Environment.IsProduction());
             }
         }
 
-        private static void SeedData(AppDbContext context)
+        private static void SeedData(AppDbContext context, bool isProd)
         {
-            if (!context.Platforms.Any())
+            if (isProd)
             {
-                Console.WriteLine("---> Seeding Data");
-                context.Platforms.AddRange(
-                    new Models.Platform() { Name = "Dotnet  ", Publisher = "MS", Cost = "Free"},
-                    new Models.Platform() { Name = "Dotnet 1", Publisher = "MS", Cost = "Free"},
-                    new Models.Platform() { Name = "Dotnet 2", Publisher = "MS", Cost = "Free"}
-                    );
-                context.SaveChanges();
+                Console.WriteLine("---> Attempting to apply migrations");
+                try
+                {
+                    context.Database.Migrate();
+                }
+                catch (Exception ex)
+                {
+
+                    Console.WriteLine("--> Could not run migrations");
+                }
             }
             else
             {
-                 Console.WriteLine("---> We already have data");
+                if (!context.Platforms.Any())
+                {
+                    Console.WriteLine("---> Seeding Data");
+                    context.Platforms.AddRange(
+                        new Models.Platform() { Name = "Dotnet  3.1", Publisher = "MS", Cost = "Free" },
+                        new Models.Platform() { Name = "Dotnet 5", Publisher = "MS", Cost = "Free" },
+                        new Models.Platform() { Name = "Dotnet 6", Publisher = "MS", Cost = "Free" }
+                        );
+                    context.SaveChanges();
+                }
+                else
+                {
+                    Console.WriteLine("---> We already have data");
+                } 
             }
         }
     }
