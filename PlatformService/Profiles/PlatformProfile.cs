@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using PlatformService.Dtos;
 using PlatformService.Models;
 using System;
@@ -15,7 +15,6 @@ public class PlatformProfile : Profile
     {
         // Source -> Target
         CreateMap<Platform, PlatformReadDto>();
-
         CreateMap<PlatformCreateDto, Platform>();
     }
 }
