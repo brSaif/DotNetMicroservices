@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using PlatformService.AsyncDataServices;
 using PlatformService.Data;
+using PlatformService.SyncDataServices.Grpc;
 using PlatformService.SyncDataServices.Http;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -22,7 +24,10 @@ else
 // Inject Platform dependency
 builder.Services.AddScoped<IPlatformRepo,PlatformRepo>();
 
+builder.Services.AddSingleton<IMessageBusClient,MessageBusClient>();
 builder.Services.AddHttpClient<ICommandDataClient,HttpCommandDataClient>();
+
+builder.Services.AddGrpc();
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -32,10 +37,10 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var srt = builder.Configuration.GetValue<string>("CommandService");
-Console.WriteLine($"---> EndPoint : {srt}");
+Console.WriteLine($"---> Remote EndPoint : {srt}");
+
 
 var app = builder.Build();
-
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -45,11 +50,16 @@ if (app.Environment.IsDevelopment())
 }
 
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.MapGrpcService<GrpcPlatformService>();
+app.MapGet("/proto/platforms.proto",async ctx => {
+    await ctx.Response.WriteAsync(File.ReadAllText("Protos/platforms.proto"));
+});
 
 PrepDb.PrepPopulation(app);
 
